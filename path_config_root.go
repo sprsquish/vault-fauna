@@ -7,17 +7,28 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
+const pathConfigRootHelpSyn = `
+Configure the root credentials that are used to manage Fauna.
+`
+
+const pathConfigRootHelpDesc = `
+Before doing anything, the Fauna backend needs credentials that are able
+to manage Fauna keys. This endpoint is used to configure those credentials.
+`
+
 func pathConfigRoot(b *backend) *framework.Path {
 	return &framework.Path{
 		Pattern: "config/root",
 		Fields: map[string]*framework.FieldSchema{
-			"secret": &framework.FieldSchema{
+			"secret": {
 				Type:        framework.TypeString,
 				Description: "Fauna secret with permission to create new keys.",
+				Required:    true,
 			},
-			"endpoint": &framework.FieldSchema{
+			"endpoint": {
 				Type:        framework.TypeString,
 				Description: "Endpoint to custom Fauna server URL",
+				Required:    true,
 			},
 		},
 
@@ -29,6 +40,11 @@ func pathConfigRoot(b *backend) *framework.Path {
 		HelpSynopsis:    pathConfigRootHelpSyn,
 		HelpDescription: pathConfigRootHelpDesc,
 	}
+}
+
+type rootConfig struct {
+	Secret   string `json:"secret"`
+	Endpoint string `json:"endpoint"`
 }
 
 func (b *backend) pathConfigRootRead(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
@@ -60,12 +76,13 @@ func (b *backend) pathConfigRootRead(ctx context.Context, req *logical.Request, 
 
 func (b *backend) pathConfigRootWrite(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	endpoint := data.Get("endpoint").(string)
+	secret := data.Get("secret").(string)
 
 	b.clientMutex.Lock()
 	defer b.clientMutex.Unlock()
 
 	entry, err := logical.StorageEntryJSON("config/root", rootConfig{
-		Secret:   data.Get("secret").(string),
+		Secret:   secret,
 		Endpoint: endpoint,
 	})
 	if err != nil {
@@ -82,17 +99,3 @@ func (b *backend) pathConfigRootWrite(ctx context.Context, req *logical.Request,
 
 	return nil, nil
 }
-
-type rootConfig struct {
-	Secret   string `json:"secret"`
-	Endpoint string `json:"endpoint"`
-}
-
-const pathConfigRootHelpSyn = `
-Configure the root credentials that are used to manage Fauna.
-`
-
-const pathConfigRootHelpDesc = `
-Before doing anything, the Fauna backend needs credentials that are able
-to manage Fauna keys. This endpoint is used to configure those credentials.
-`

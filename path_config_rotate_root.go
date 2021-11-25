@@ -9,6 +9,16 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
+const pathConfigRotateRootHelpSyn = `
+Request to rotate the Fauna root key used by Vault
+`
+
+const pathConfigRotateRootHelpDesc = `
+This path attempts to rotate the Fauna root key used by Vault for this mount.
+It is only valid if Vault has been configured with a secret via the config/root
+endpoint.
+`
+
 const RootKeyName = "vault-root"
 
 func pathConfigRotateRoot(b *backend) *framework.Path {
@@ -83,13 +93,3 @@ func (b *backend) pathConfigRotateRootUpdate(ctx context.Context, req *logical.R
 
 	return &logical.Response{}, nil
 }
-
-const pathConfigRotateRootHelpSyn = `
-Request to rotate the Fauna root key used by Vault
-`
-
-const pathConfigRotateRootHelpDesc = `
-This path attempts to rotate the Fauna root key used by Vault for this mount.
-It is only valid if Vault has been configured with a secret via the config/root
-endpoint.
-`

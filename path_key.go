@@ -10,15 +10,29 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+const pathKeyHelpSyn = `
+Generate Fauna keys from a specific Vault role.
+`
+
+const pathKeyHelpDesc = `
+This path will generate new, never before used Fauna keys for
+accessing Fauna. The IAM policy used to back this key pair will be
+the "name" parameter. For example, if this backend is mounted at "fauna",
+then "fauna/deploy" would generate access keys for the "deploy" role.
+
+The keys will have a lease associated with them. The keys can be revoked
+by using the lease ID.
+`
+
 func pathKey(b *backend) *framework.Path {
 	return &framework.Path{
 		Pattern: framework.GenericNameWithAtRegex("name"),
 		Fields: map[string]*framework.FieldSchema{
-			"name": &framework.FieldSchema{
+			"name": {
 				Type:        framework.TypeString,
 				Description: "Name of the role",
 			},
-			"ttl": &framework.FieldSchema{
+			"ttl": {
 				Type:        framework.TypeDurationSecond,
 				Description: "Lifetime of the returned credentials in seconds",
 				Default:     3600,
@@ -75,17 +89,3 @@ func (b *backend) pathKeyRollback(ctx context.Context, req *logical.Request, _ki
 type walKey struct {
 	KeyHash string
 }
-
-const pathKeyHelpSyn = `
-Generate Fauna keys from a specific Vault role.
-`
-
-const pathKeyHelpDesc = `
-This path will generate new, never before used Fauna keys for
-accessing Fauna. The IAM policy used to back this key pair will be
-the "name" parameter. For example, if this backend is mounted at "fauna",
-then "fauna/deploy" would generate access keys for the "deploy" role.
-
-The keys will have a lease associated with them. The keys can be revoked
-by using the lease ID.
-`

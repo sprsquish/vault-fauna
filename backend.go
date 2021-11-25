@@ -11,6 +11,16 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
+const backendHelp = `
+The Fauna  backend dynamically generates Fauna keys. The Fauna keys
+have a configurable lease set and are automatically revoked at the
+end of the lease.
+
+After mounting this backend, credentials to generate Fauna keys must
+be configured with the "root" path and policies must be written using
+the "roles/" endpoints before any keys can be generated.
+`
+
 const (
 	rootConfigPath    = "config/root"
 	minKeyRollbackAge = 1 * time.Second
@@ -79,16 +89,6 @@ type backend struct {
 	// to enable mocking with Fauna iface for tests
 	faunaClient *FaunaClient
 }
-
-const backendHelp = `
-The Fauna  backend dynamically generates Fauna keys. The Fauna keys
-have a configurable lease set and are automatically revoked at the
-end of the lease.
-
-After mounting this backend, credentials to generate Fauna keys must
-be configured with the "root" path and policies must be written using
-the "roles/" endpoints before any keys can be generated.
-`
 
 func (b *backend) invalidate(ctx context.Context, key string) {
 	switch {

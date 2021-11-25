@@ -17,7 +17,7 @@ func faunaKeys(b *backend) *framework.Secret {
 	return &framework.Secret{
 		Type: faunaKeyType,
 		Fields: map[string]*framework.FieldSchema{
-			"secret": &framework.FieldSchema{
+			"secret": {
 				Type:        framework.TypeString,
 				Description: "Key Secret",
 			},

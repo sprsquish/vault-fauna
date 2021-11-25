@@ -10,6 +10,24 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
+const pathListRolesHelpSyn = `List the existing roles in this backend`
+
+const pathListRolesHelpDesc = `Roles will be listed by the role name.`
+
+const pathRolesHelpSyn = `
+Read, write and reference policies that keys can be made for.
+`
+
+const pathRolesHelpDesc = `
+This path allows you to read and write roles that are used to
+create Fauna keys. These roles are associated with key roles that
+map directly to the route to read the Fauna keys. For example, if the
+backend is mounted at "fauna" and you create a role at "fauna/roles/deploy"
+then a user could request access credentials at "fauna/deploy".
+
+To validate the keys, attempt to read an access key after writing the policy.
+`
+
 func pathListRoles(b *backend) *framework.Path {
 	return &framework.Path{
 		Pattern: "roles/?$",
@@ -27,7 +45,7 @@ func pathRoles(b *backend) *framework.Path {
 	return &framework.Path{
 		Pattern: "roles/" + framework.GenericNameWithAtRegex("name"),
 		Fields: map[string]*framework.FieldSchema{
-			"name": &framework.FieldSchema{
+			"name": {
 				Type:        framework.TypeString,
 				Description: "Name of the policy",
 				//DisplayAttrs: &framework.DisplayAttributes{
@@ -35,17 +53,17 @@ func pathRoles(b *backend) *framework.Path {
 				//},
 			},
 
-			"key_role": &framework.FieldSchema{
+			"key_role": {
 				Type:        framework.TypeString,
 				Description: `Fauna role to associate with the key.`,
 			},
 
-			"database": &framework.FieldSchema{
+			"database": {
 				Type:        framework.TypeString,
 				Description: `A reference for the database associated with this key.`,
 			},
 
-			"extra": &framework.FieldSchema{
+			"extra": {
 				Type:        framework.TypeString,
 				Description: `JSON-encoded data to add to the generated key`,
 			},
@@ -227,21 +245,3 @@ func compactJSON(input string) (string, error) {
 	err := json.Compact(&compacted, []byte(input))
 	return compacted.String(), err
 }
-
-const pathListRolesHelpSyn = `List the existing roles in this backend`
-
-const pathListRolesHelpDesc = `Roles will be listed by the role name.`
-
-const pathRolesHelpSyn = `
-Read, write and reference policies that keys can be made for.
-`
-
-const pathRolesHelpDesc = `
-This path allows you to read and write roles that are used to
-create Fauna keys. These roles are associated with key roles that
-map directly to the route to read the Fauna keys. For example, if the
-backend is mounted at "fauna" and you create a role at "fauna/roles/deploy"
-then a user could request access credentials at "fauna/deploy".
-
-To validate the keys, attempt to read an access key after writing the policy.
-`

@@ -15,16 +15,16 @@ endif
 all: fmt build start
 
 build:
-	GOOS=$(OS) GOARCH="$(GOARCH)" go build -o vault/plugins/vault-fauna cmd/vault-fauna/main.go
+	GOOS=$(OS) GOARCH="$(GOARCH)" go build -o vault/plugins/fauna cmd/fauna/main.go
 
 start:
 	vault server -dev -dev-root-token-id=root -dev-plugin-dir=./vault/plugins -log-level=trace
 
 enable:
-	vault secrets enable -path=fauna vault-fauna
+	vault secrets enable fauna
 
 clean:
-	rm -f ./vault/plugins/vault-fauna
+	rm -f ./vault/plugins/fauna
 
 fmt:
 	go fmt $$(go list ./...)
