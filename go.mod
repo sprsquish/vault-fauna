@@ -6,10 +6,10 @@ require (
 	github.com/fauna/faunadb-go/v5 v5.0.0-beta
 	github.com/hashicorp/errwrap v1.1.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
-	github.com/hashicorp/go-hclog v1.0.0
-	github.com/hashicorp/vault/api v1.3.0
-	github.com/hashicorp/vault/sdk v0.3.0
-	github.com/mitchellh/mapstructure v1.4.2
+	github.com/hashicorp/go-hclog v1.2.0
+	github.com/hashicorp/vault/api v1.4.1
+	github.com/hashicorp/vault/sdk v0.4.1
+	github.com/mitchellh/mapstructure v1.4.3
 )
 
 require (
