@@ -14,7 +14,8 @@ func (b *backend) walRollback(ctx context.Context, req *logical.Request, kind st
 		"key": b.pathKeyRollback,
 	}
 
-	if !b.System().LocalMount() && b.System().ReplicationState().HasState(consts.ReplicationPerformanceSecondary|consts.ReplicationPerformanceStandby) {
+	stateFlags := consts.ReplicationPerformanceSecondary | consts.ReplicationPerformanceStandby
+	if !b.System().LocalMount() && b.System().ReplicationState().HasState(stateFlags) {
 		return nil
 	}
 

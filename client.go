@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	f "github.com/fauna/faunadb-go/v3/faunadb"
+	f "github.com/fauna/faunadb-go/v4/faunadb"
 	"github.com/hashicorp/errwrap"
 	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/go-hclog"
