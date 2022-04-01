@@ -24,7 +24,7 @@ vault write -force fauna/config/rotate-root
 
 Create a role:
 ```
-vault write fauna/roles/[role name] database=[database] key_role=[fauna key role]
+vault write fauna/roles/[role name] database=[database] role=[fauna key role]
 ```
 
 Get a new key:

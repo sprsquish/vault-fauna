@@ -70,7 +70,6 @@ func (b *backend) pathKeyRollback(ctx context.Context, req *logical.Request, _ki
 	if err := mapstructure.Decode(data, &entry); err != nil {
 		return err
 	}
-	keyhash := entry.KeyHash
 
 	// Get the client
 	client, err := b.client(ctx, req.Storage)
@@ -78,7 +77,7 @@ func (b *backend) pathKeyRollback(ctx context.Context, req *logical.Request, _ki
 		return err
 	}
 
-	err = client.deleteKey(keyhash)
+	err = client.deleteKey(entry.Ref)
 	if err != nil {
 		return err
 	}
@@ -87,5 +86,5 @@ func (b *backend) pathKeyRollback(ctx context.Context, req *logical.Request, _ki
 }
 
 type walKey struct {
-	KeyHash string
+	Ref string
 }

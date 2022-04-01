@@ -66,8 +66,8 @@ func (b *backend) pathConfigRotateRootUpdate(ctx context.Context, req *logical.R
 		return logical.ErrorResponse("Cannot call config/rotate-root when secret is empty"), nil
 	}
 
-	key, err := client.createKey(RootKeyName, &FaunaRoleEntry{
-		KeyRole: "admin",
+	key, err := client.createKey(&FaunaRoleEntry{
+		Role: "admin",
 	})
 	if err != nil {
 		return nil, errwrap.Wrapf("error generating new root key: {{err}}", err)

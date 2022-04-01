@@ -2,7 +2,6 @@ package fauna
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -28,15 +27,9 @@ const (
 
 func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, error) {
 	b := Backend()
-
-	if conf == nil {
-		return nil, fmt.Errorf("configuration passed into backend is nil")
-	}
-
 	if err := b.Setup(ctx, conf); err != nil {
 		return nil, err
 	}
-
 	return b, nil
 }
 

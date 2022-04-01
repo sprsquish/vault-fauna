@@ -11,43 +11,19 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
-const IndexName = "keys-by-hash-for-vault"
-
 type FaunaKey struct {
-	Name         string `fauna:"data.name"`
-	Secret       string `fauna:"secret"`
-	HashedSecret string `fauna:"hashed_secret"`
-	Role         string `fauna:"role"`
-	Database     f.RefV `fauna:"database"`
+	Secret   string `fauna:"secret"`
+	Ref      f.RefV `fauna:"ref"`
+	Role     string `fauna:"role"`
+	Database f.RefV `fauna:"database"`
 }
 
 type FaunaClient struct {
 	client *f.FaunaClient
 }
 
-func (fc *FaunaClient) ensureKeyIndex() error {
-	createStmt := f.CreateIndex(f.Obj{
-		"name":   IndexName,
-		"source": f.Keys(),
-		"terms": f.Arr{f.Obj{
-			"field": f.Arr{"hashed_secret"},
-		}}})
-
-	query := f.If(
-		f.Exists(f.Index(IndexName)),
-		f.Null(),
-		createStmt)
-
-	_, err := fc.client.Query(query)
-	return err
-}
-
-func (fc *FaunaClient) deleteKey(hash string) error {
-	query := f.Map(
-		f.Paginate(f.MatchTerm(f.Index(IndexName), hash)),
-		f.Lambda("ref", f.Delete(f.Var("ref"))))
-
-	_, err := fc.client.Query(query)
+func (fc *FaunaClient) deleteKey(ref string) error {
+	_, err := fc.client.Query(f.Delete(ref))
 	return err
 }
 
@@ -57,10 +33,10 @@ func (fc *FaunaClient) deleteKeyBySecret(secret string) error {
 	return err
 }
 
-func (fc *FaunaClient) createKey(name string, role *FaunaRoleEntry) (*FaunaKey, error) {
+func (fc *FaunaClient) createKey(role *FaunaRoleEntry) (*FaunaKey, error) {
 	data := f.Obj{
-		"role": role.KeyRole,
-		"data": f.Obj{"name": name}}
+		"role": role.Role,
+		"data": role.Extra} // TODO: turn this into an f.Obj
 	if role.Database != "" {
 		data["database"] = f.Database(role.Database)
 	}
@@ -124,10 +100,6 @@ func nonCachedClient(ctx context.Context, s logical.Storage, logger hclog.Logger
 
 	client := &FaunaClient{
 		client: faunaClient,
-	}
-
-	if err := client.ensureKeyIndex(); err != nil {
-		return nil, err
 	}
 
 	return client, nil

@@ -2,16 +2,12 @@ package fauna
 
 import (
 	"context"
-	"fmt"
-	"math/rand"
-	"time"
 
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
-const faunaKeyType = "faunaKey"
+const faunaKeyType = "fauna_keys"
 
 func faunaKeys(b *backend) *framework.Secret {
 	return &framework.Secret{
@@ -38,37 +34,21 @@ func (b *backend) faunaKeyCreate(
 		return logical.ErrorResponse(err.Error()), nil
 	}
 
-	keyhash := fmt.Sprintf("vault-%s-%s-%d-%d", displayName, policyName, time.Now().Unix(), rand.Int31n(10000))
-
-	// Write to the WAL that this key will be created. We do this before
-	// the key is created because if switch the order then the WAL put
-	// can fail, which would put us in an awkward position: we have a key
-	// we need to rollback but can't put the WAL entry to do the rollback.
-	walID, err := framework.PutWAL(ctx, s, "key", &walKey{
-		KeyHash: keyhash,
-	})
-	if err != nil {
-		return nil, errwrap.Wrapf("error writing WAL entry: {{err}}", err)
-	}
-
 	// Create the keys
-	faunaKey, err := client.createKey(keyhash, role)
+	faunaKey, err := client.createKey(role)
 	if err != nil {
 		return logical.ErrorResponse("Error creating key: %s", err), err
 	}
 
-	// Remove the WAL entry, we succeeded! If we fail, we don't return
-	// the secret because it'll get rolled back anyways, so we have to return
-	// an error here.
-	if err := framework.DeleteWAL(ctx, s, walID); err != nil {
-		return nil, errwrap.Wrapf("failed to commit WAL entry: {{err}}", err)
+	refJSON, err := faunaKey.Ref.MarshalJSON()
+	if err != nil {
+		return logical.ErrorResponse("Error creating key: %s", err), err
 	}
 
-	// Return the info!
 	resp := b.Secret(faunaKeyType).Response(map[string]interface{}{
 		"secret": faunaKey.Secret,
 	}, map[string]interface{}{
-		"keyhash": faunaKey.HashedSecret,
+		"ref": refJSON,
 	})
 
 	lease, err := b.Lease(ctx, s)
@@ -98,23 +78,9 @@ func (b *backend) faunaKeysRenew(ctx context.Context, req *logical.Request, d *f
 }
 
 func (b *backend) faunaKeysRevoke(ctx context.Context, req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
-	// Get the keyhash from the internal data
-	keyhashRaw, ok := req.Secret.InternalData["keyhash"]
-	if !ok {
-		return nil, fmt.Errorf("secret is missing keyhash internal data")
-	}
-	keyhash, ok := keyhashRaw.(string)
-	if !ok {
-		return nil, fmt.Errorf("secret is missing keyhash internal data")
-	}
-
 	// Use the key rollback mechanism to delete this key
-	err := b.pathKeyRollback(ctx, req, "key", map[string]interface{}{
-		"keyhash": keyhash,
-	})
-	if err != nil {
+	if err := b.pathKeyRollback(ctx, req, "key", req.Secret.InternalData); err != nil {
 		return nil, err
 	}
-
 	return nil, nil
 }
