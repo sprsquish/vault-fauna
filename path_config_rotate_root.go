@@ -3,6 +3,7 @@ package fauna
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/vault/sdk/framework"
@@ -66,8 +67,10 @@ func (b *backend) pathConfigRotateRootUpdate(ctx context.Context, req *logical.R
 		return logical.ErrorResponse("Cannot call config/rotate-root when secret is empty"), nil
 	}
 
+	keyName := fmt.Sprintf("vault-root-%d", time.Now().Unix())
 	key, err := client.createKey(&FaunaRoleEntry{
-		Role: "admin",
+		Role:  "admin",
+		Extra: map[string]interface{}{"name": keyName},
 	})
 	if err != nil {
 		return nil, errwrap.Wrapf("error generating new root key: {{err}}", err)

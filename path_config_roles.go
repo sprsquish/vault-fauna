@@ -1,9 +1,8 @@
 package fauna
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/vault/sdk/framework"
@@ -64,8 +63,8 @@ func pathRoles(b *backend) *framework.Path {
 			},
 
 			"extra": {
-				Type:        framework.TypeString,
-				Description: `JSON-encoded data to add to the generated key`,
+				Type:        framework.TypeMap,
+				Description: `map of data to add to the generated key`,
 			},
 		},
 
@@ -141,14 +140,7 @@ func (b *backend) pathRolesWrite(ctx context.Context, req *logical.Request, d *f
 	}
 
 	if extraRaw, ok := d.GetOk("extra"); ok {
-		compacted := extraRaw.(string)
-		if len(compacted) > 0 {
-			compacted, err = compactJSON(extraRaw.(string))
-			if err != nil {
-				return logical.ErrorResponse(fmt.Sprintf("cannot parse extra: %q", extraRaw.(string))), nil
-			}
-		}
-		roleEntry.Extra = compacted
+		roleEntry.Extra = extraRaw.(map[string]interface{})
 	}
 
 	err = setFaunaRole(ctx, req.Storage, roleName, roleEntry)
@@ -225,9 +217,9 @@ func setFaunaRole(ctx context.Context, s logical.Storage, roleName string, roleE
 }
 
 type FaunaRoleEntry struct {
-	Role     string `json:"role"`     // Fauna role to associated with the key.
-	Database string `json:"database"` // Fauna database to associated with the key.
-	Extra    string `json:"extra"`    // JSON-serialized inline extra data to add to the key.
+	Role     string                 `json:"role"`     // Fauna role to associated with the key.
+	Database string                 `json:"database"` // Fauna database to associated with the key.
+	Extra    map[string]interface{} `json:"extra"`    // JSON-serialized inline extra data to add to the key.
 }
 
 func (r *FaunaRoleEntry) toResponseData() map[string]interface{} {
@@ -238,10 +230,4 @@ func (r *FaunaRoleEntry) toResponseData() map[string]interface{} {
 	}
 
 	return respData
-}
-
-func compactJSON(input string) (string, error) {
-	var compacted bytes.Buffer
-	err := json.Compact(&compacted, []byte(input))
-	return compacted.String(), err
 }

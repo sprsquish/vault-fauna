@@ -3,7 +3,7 @@ module github.com/fauna/vault-fauna
 go 1.17
 
 require (
-	github.com/fauna/faunadb-go/v4 v4.1.0
+	github.com/fauna/faunadb-go/v5 v5.0.0-beta
 	github.com/hashicorp/errwrap v1.1.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-hclog v1.0.0

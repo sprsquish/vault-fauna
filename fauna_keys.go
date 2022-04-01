@@ -48,7 +48,7 @@ func (b *backend) faunaKeyCreate(
 	resp := b.Secret(faunaKeyType).Response(map[string]interface{}{
 		"secret": faunaKey.Secret,
 	}, map[string]interface{}{
-		"ref": refJSON,
+		"ref": string(refJSON),
 	})
 
 	lease, err := b.Lease(ctx, s)

@@ -3,8 +3,9 @@ package fauna
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	f "github.com/fauna/faunadb-go/v4/faunadb"
+	f "github.com/fauna/faunadb-go/v5/faunadb"
 	"github.com/hashicorp/errwrap"
 	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/go-hclog"
@@ -12,17 +13,28 @@ import (
 )
 
 type FaunaKey struct {
-	Secret   string `fauna:"secret"`
-	Ref      f.RefV `fauna:"ref"`
-	Role     string `fauna:"role"`
-	Database f.RefV `fauna:"database"`
+	Secret   string  `fauna:"secret"`
+	Ref      f.RefV  `fauna:"ref"`
+	Role     f.Value `fauna:"role"`
+	Database f.RefV  `fauna:"database"`
 }
 
 type FaunaClient struct {
 	client *f.FaunaClient
+	logger hclog.Logger
 }
 
-func (fc *FaunaClient) deleteKey(ref string) error {
+func (fc *FaunaClient) strToRef(refStr string) (*f.RefV, error) {
+	var value f.Value
+	if err := f.UnmarshalJSON([]byte(refStr), &value); err != nil {
+		return nil, err
+	}
+
+	ref := value.(f.RefV)
+	return &ref, nil
+}
+
+func (fc *FaunaClient) deleteKey(ref f.RefV) error {
 	_, err := fc.client.Query(f.Delete(ref))
 	return err
 }
@@ -34,14 +46,26 @@ func (fc *FaunaClient) deleteKeyBySecret(secret string) error {
 }
 
 func (fc *FaunaClient) createKey(role *FaunaRoleEntry) (*FaunaKey, error) {
-	data := f.Obj{
-		"role": role.Role,
-		"data": role.Extra} // TODO: turn this into an f.Obj
+	create := f.Obj{}
+
 	if role.Database != "" {
-		data["database"] = f.Database(role.Database)
+		create["database"] = f.Database(role.Database)
 	}
 
-	res, err := fc.client.Query(f.CreateKey(data))
+	roleTokens := strings.Split(role.Role, "/")
+	if len(roleTokens) == 2 {
+		create["role"] = f.Role(roleTokens[1])
+	} else {
+		create["role"] = roleTokens[0]
+	}
+
+	if role.Extra != nil {
+		create["data"] = role.Extra
+	}
+
+	q := f.CreateKey(create)
+	fc.logger.Debug(fmt.Sprintf("JWS CREATE: %v", q))
+	res, err := fc.client.Query(q)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +99,7 @@ func nonCachedClient(ctx context.Context, s logical.Storage, logger hclog.Logger
 		endpoint = config.Endpoint
 	}
 
-	httpClient := cleanhttp.DefaultClient()
+	httpClient := f.HTTP(cleanhttp.DefaultClient())
 
 	if endpoint != "" {
 		endpointConfig = f.Endpoint(endpoint)
@@ -83,16 +107,16 @@ func nonCachedClient(ctx context.Context, s logical.Storage, logger hclog.Logger
 		endpointConfig = func(cli *f.FaunaClient) {}
 	}
 
-	observer := func(qr *f.QueryResult) {
-		logger.Info(fmt.Sprintf("Query: %s\nResult: %s", qr.Query, qr.Result))
+	observer := f.Observer(func(qr *f.QueryResult) {
+		logger.Debug(fmt.Sprintf("Query: %s\nResult: %s", qr.Query, qr.Result))
 		// TODO: wire up logging
-	}
+	})
 
 	faunaClient := f.NewFaunaClient(
 		faunaSecret,
 		endpointConfig,
-		f.HTTP(httpClient),
-		f.Observer(observer))
+		httpClient,
+		observer)
 
 	if faunaClient == nil {
 		return nil, fmt.Errorf("could not obtain Fauna client")
@@ -100,6 +124,7 @@ func nonCachedClient(ctx context.Context, s logical.Storage, logger hclog.Logger
 
 	client := &FaunaClient{
 		client: faunaClient,
+		logger: logger,
 	}
 
 	return client, nil

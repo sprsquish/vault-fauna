@@ -77,7 +77,12 @@ func (b *backend) pathKeyRollback(ctx context.Context, req *logical.Request, _ki
 		return err
 	}
 
-	err = client.deleteKey(entry.Ref)
+	ref, err := client.strToRef(entry.Ref)
+	if err != nil {
+		return err
+	}
+
+	err = client.deleteKey(*ref)
 	if err != nil {
 		return err
 	}

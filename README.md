@@ -9,7 +9,7 @@ and load the plugin.
 
 In a separate terminal enable the secrets engine:
 ```
-vault secrets enable -path=fauna vault-fauna
+vault secrets enable fauna
 ```
 
 Set the root config:
@@ -26,6 +26,8 @@ Create a role:
 ```
 vault write fauna/roles/[role name] database=[database] role=[fauna key role]
 ```
+
+role can be "admin", "server", "read-only", or "roles/[custom role]"
 
 Get a new key:
 ```
