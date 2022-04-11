@@ -2,7 +2,6 @@ package fauna
 
 import (
 	"context"
-	// "encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/vault/sdk/framework"
@@ -47,9 +46,6 @@ func pathRoles(b *backend) *framework.Path {
 			"name": {
 				Type:        framework.TypeString,
 				Description: "Name of the policy",
-				//DisplayAttrs: &framework.DisplayAttributes{
-				//Name: "Policy Name",
-				//},
 			},
 
 			"role": {
