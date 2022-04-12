@@ -63,9 +63,7 @@ func (fc *FaunaClient) createKey(role *FaunaRoleEntry) (*FaunaKey, error) {
 		create["data"] = role.Extra
 	}
 
-	q := f.CreateKey(create)
-	fc.logger.Debug(fmt.Sprintf("JWS CREATE: %v", q))
-	res, err := fc.client.Query(q)
+	res, err := fc.client.Query(f.CreateKey(create))
 	if err != nil {
 		return nil, err
 	}
