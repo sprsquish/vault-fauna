@@ -45,9 +45,9 @@ func (b *backend) faunaKeyCreate(
 		return logical.ErrorResponse("Error creating key: %s", err), err
 	}
 
-	resp := b.Secret(faunaKeyType).Response(map[string]interface{}{
+	resp := b.Secret(faunaKeyType).Response(map[string]any{
 		"secret": faunaKey.Secret,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"ref": string(refJSON),
 	})
 

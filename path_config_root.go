@@ -65,7 +65,7 @@ func (b *backend) pathConfigRootRead(ctx context.Context, req *logical.Request, 
 		return nil, err
 	}
 
-	configData := map[string]interface{}{
+	configData := map[string]any{
 		"secret":   config.Secret,
 		"endpoint": config.Endpoint,
 	}

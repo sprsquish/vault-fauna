@@ -65,7 +65,7 @@ func (b *backend) pathRead(ctx context.Context, req *logical.Request, d *framewo
 	return b.faunaKeyCreate(ctx, req.Storage, req.DisplayName, roleName, role)
 }
 
-func (b *backend) pathKeyRollback(ctx context.Context, req *logical.Request, _kind string, data interface{}) error {
+func (b *backend) pathKeyRollback(ctx context.Context, req *logical.Request, _kind string, data any) error {
 	var entry walKey
 	if err := mapstructure.Decode(data, &entry); err != nil {
 		return err

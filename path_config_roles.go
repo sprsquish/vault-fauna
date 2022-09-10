@@ -136,7 +136,7 @@ func (b *backend) pathRolesWrite(ctx context.Context, req *logical.Request, d *f
 	}
 
 	if extraRaw, ok := d.GetOk("extra"); ok {
-		roleEntry.Extra = extraRaw.(map[string]interface{})
+		roleEntry.Extra = extraRaw.(map[string]any)
 	}
 
 	err = setFaunaRole(ctx, req.Storage, roleName, roleEntry)
@@ -213,13 +213,13 @@ func setFaunaRole(ctx context.Context, s logical.Storage, roleName string, roleE
 }
 
 type FaunaRoleEntry struct {
-	Role     string                 `json:"role"`     // Fauna role to associated with the key.
-	Database string                 `json:"database"` // Fauna database to associated with the key.
-	Extra    map[string]interface{} `json:"extra"`    // JSON-serialized inline extra data to add to the key.
+	Role     string         `json:"role"`     // Fauna role to associated with the key.
+	Database string         `json:"database"` // Fauna database to associated with the key.
+	Extra    map[string]any `json:"extra"`    // JSON-serialized inline extra data to add to the key.
 }
 
-func (r *FaunaRoleEntry) toResponseData() map[string]interface{} {
-	respData := map[string]interface{}{
+func (r *FaunaRoleEntry) toResponseData() map[string]any {
+	respData := map[string]any{
 		"role":     r.Role,
 		"database": r.Database,
 		"extra":    r.Extra,

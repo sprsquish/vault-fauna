@@ -70,7 +70,7 @@ func (b *backend) pathConfigRotateRootUpdate(ctx context.Context, req *logical.R
 	keyName := fmt.Sprintf("vault-root-%d", time.Now().Unix())
 	key, err := client.createKey(&FaunaRoleEntry{
 		Role:  "admin",
-		Extra: map[string]interface{}{"name": keyName},
+		Extra: map[string]any{"name": keyName},
 	})
 	if err != nil {
 		return nil, errwrap.Wrapf("error generating new root key: {{err}}", err)

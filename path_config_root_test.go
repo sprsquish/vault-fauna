@@ -17,7 +17,7 @@ func TestBackend_PathConfigRoot(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	configData := map[string]interface{}{
+	configData := map[string]any{
 		"secret":   "fauna-secret",
 		"endpoint": "https://db.fauna.com",
 	}
