@@ -105,16 +105,14 @@ func nonCachedClient(ctx context.Context, s logical.Storage, logger hclog.Logger
 		endpointConfig = func(cli *f.FaunaClient) {}
 	}
 
-	observer := f.Observer(func(qr *f.QueryResult) {
-		logger.Debug(fmt.Sprintf("Query: %s\nResult: %s", qr.Query, qr.Result))
-		// TODO: wire up logging
-	})
+	// observer := f.Observer(func(qr *f.QueryResult) {
+	// 	logger.Debug(fmt.Sprintf("Query: %s\nResult: %s", qr.Query, qr.Result))
+	// })
 
 	faunaClient := f.NewFaunaClient(
 		faunaSecret,
 		endpointConfig,
-		httpClient,
-		observer)
+		httpClient)
 
 	if faunaClient == nil {
 		return nil, fmt.Errorf("could not obtain Fauna client")
